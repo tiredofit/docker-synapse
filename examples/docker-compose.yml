@@ -1,0 +1,71 @@
+version: '2.4'
+services:
+
+  synapse-app:
+    image: tiredofit/synapse:latest
+    container_name: synapse-app
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.synapse.rule=Host(`synapse.example.com`)
+      - traefik.http.services.synapse.loadbalancer.server.port=8008
+    environment:
+      - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=synapse-app
+      - SETUP_TYPE=AUTO
+
+      - DB_TYPE=postgresql
+      - DB_HOST=synapse-db
+      - DB_NAME=synapse
+      - DB_USER=synapse
+      - DB_PASS=password
+      - DB_PORT=5432
+
+      - SERVER_NAME=matrix
+      - DEBUG_MODE=TRUE
+    networks:
+      - proxy
+      - services
+    restart: always
+
+  synapse-db:
+    image: tiredofit/postgres:15
+    container_name: synapse-db
+    volumes:
+      - ./db/postgresql:/var/lib/postgresql
+    environment:
+      - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=synapse-db
+      - ZABBIX_AGENT_TYPE=classic
+
+      - POSTGRES_DB=synapse
+      - POSTGRES_USER=synapse
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    networks:
+      - services
+    restart: always
+
+  synapse-db-backup:
+    image: tiredofit/db-backup
+    container_name: synapse-db-backup
+    volumes:
+      - ./dbbackup:/backup
+    environment:
+      - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=synapse-db-backup
+      - DB_HOST=synapse-db
+      - DB_TYPE=postgres
+      - DB_NAME=synapse
+      - DB_USER=synapse
+      - DB_PASS=password
+      - DB_DUMP_FREQ=1440
+      - DB_DUMP_BEGIN=0000
+      - DB_CLEANUP_TIME=8640
+    networks:
+      - services
+    restart: always
+networks:
+  proxy:
+    external: true
+  services:
+    external: true

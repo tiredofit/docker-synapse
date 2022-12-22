@@ -1,0 +1,21 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+PROCESS_NAME="create_admin_user"
+source /assets/defaults/10-synapse
+
+check_container_initialized
+check_service_initialized 10-synapse
+
+liftoff
+
+wait_for_port localhost ${HTTP_LISTEN_PORT}
+print_info "Creating Admin User"
+silent /usr/bin/register_new_matrix_user \
+                                    -u "${ADMIN_USER}" \
+                                    -p "${ADMIN_PASS}" \
+                                    -a \
+                                    -c "${CONFIG_PATH}"/"${CONFIG_FILE}" \
+                                    http://localhost:${HTTP_LISTEN_PORT}
+
+s6-svc -d /var/run/s6/legacy-services/91-create_admin_user

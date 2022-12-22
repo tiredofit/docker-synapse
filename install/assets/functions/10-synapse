@@ -1,0 +1,605 @@
+#!/command/with-contenv bash
+
+bootstrap_filesystem() {
+    if [ ! -d "${DATA_PATH}" ]; then
+        mkdir -p "${DATA_PATH}"
+    fi
+    if [ $(stat -c %U "${DATA_PATH}") != "synapse" ] ; then chown synapse:synapse "${DATA_PATH}" ; fi
+
+    if [ ! -d "${CERT_PATH}" ]; then
+        mkdir -p "${CERT_PATH}"
+    fi
+    if [ $(stat -c %U "${CERT_PATH}") != "synapse" ] ; then chown synapse:synapse "${CERT_PATH}" ; fi
+
+    if [ ! -d "${CONFIG_PATH}" ]; then
+        mkdir -p "${CONFIG_PATH}"
+    fi
+    if [ $(stat -c %U "${CONFIG_PATH}") != "synapse" ] ; then chown -R synapse:synapse "${CONFIG_PATH}" ; fi
+
+    if [ ! -d "${LOG_PATH}" ]; then
+        mkdir -p "${LOG_PATH}"
+    fi
+    if [ $(stat -c %U "${LOG_PATH}") != "synapse" ] ; then chown -R synapse:synapse "${LOG_PATH}" ; fi
+    case "${LOG_TYPE,,}" in
+        file | both )
+            create_logrotate synapse "${LOG_PATH}"/"${LOG_FILE}" synapse synapse
+        ;;
+    fi
+
+    if [ ! -d "${MEDIA_PATH}" ]; then
+        mkdir -p "${MEDIA_PATH}"
+    fi
+    if [ $(stat -c %U "${MEDIA_PATH}") != "synapse" ] ; then chown synapse:synapse "${MEDIA_PATH}" ; fi
+
+    if [ ! -d "${TEMPLATE_PATH}" ]; then
+        mkdir -p "${TEMPLATE_PATH}"
+        chown synapse:synapse "${TEMPLATE_PATH}"
+    fi
+    if dir_empty "${TEMPLATE_PATH}" ; then sudo -u synapse cp -aR /assets/synapse/templates/* "${TEMPLATE_PATH}" ; fi
+    if [ $(stat -c %U "${TEMPLATE_PATH}") != "synapse" ] ; then chown synapse:synapse "${TEMPLATE_PATH}" ; fi
+
+    if [ ! -d "${UPLOAD_PATH}" ]; then
+        mkdir -p "${UPLOAD_PATH}"
+    fi
+    if [ $(stat -c %U "${UPLOAD_PATH}") != "synapse" ] ; then chown synapse:synapse "${UPLOAD_PATH}" ; fi
+}
+
+check_version() {
+    if [ ! -f "${DATA_PATH}"/.synapse-version ]; then
+        echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" >> "${DATA_PATH}"/.synapse-version
+    fi
+
+    if [ "$SYNAPSE_VERSION" != $(head -n 1 "${DATA_PATH}"/.synapse-version | awk '{print $1'}) ]; then
+        print_warn "Detected in place Synapse version $(head -n 1 "${DATA_PATH}"/.synapse-version | awk "{print $1"}) - Upgrading to ${SYNAPSE_VERSION}"
+        ## Do something
+        sed -i --follow-symlinks "1 i\
+        ${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH}"/.synapse-version
+    fi
+}
+
+create_admin_user() {
+    if [ ! -f "${DATA_PATH}"/.syanpse-version ] && [ "${SETUP_TYPE,,}" != "manual" ]; then
+        if var_false "${CREATE_ADMIN_USER}" ; then
+            rm -rf /etc/services.available/91-create_admin_user
+        fi
+    else
+        rm -rf /etc/services.available/91-create_admin_user
+    fi
+}
+
+generate_configuration(){
+    if [ "${SETUP_MODE,,}" = "auto" ] ; then
+        print_debug "Automatically generating configuration based on environment variables and defaults"
+
+        if [ -z "${SECRET_FORM}" ] ; then
+            export SECRET_FORM=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+        fi
+
+        if [ -z "${SECRET_MACAROON}" ] ; then
+            export SECRET_MACAROON=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+        fi
+
+        if [ -z "${SECRET_REGISTRATION}" ] ; then
+            export SECRET_REGISTRATION=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+        fi
+
+        if  [ ! -f "${CONFIG_PATH}"/"${CONFIG_FILE}" ] || var_true "${REFRESH_CONFIGURATION}"; then
+            case "${DB_TYPE,,}" in
+                postgres* )
+                    synapse_db=$(cat <<EOF
+database:
+  name: psycopg2
+  txn_limit: ${DB_TRANSACTION_LIMIT}
+  args:
+    user: ${DB_USER}
+    password: ${DB_PASS}
+    database: ${DB_NAME}
+    host: ${DB_HOST}
+    port: ${DB_PORT}
+    cp_min: ${DB_POOL_MIN}
+    cp_max: ${DB_POOL_MAX}
+EOF
+                    )
+                ;;
+                sqlite* )
+                    synapse_db=$(cat <<EOF
+database:
+  name: sqlite3
+  args:
+    database: ${SQLITE_DB_PATH}/${SQLITE_DB_NAME}
+EOF
+                )
+                ;;
+            esac
+
+            sanity_var SERVER_NAME "Matrix Server Name"
+            cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${CONFIG_FILE}"
+## tiredofit/synapse Synapse Configuration
+## Some of these entries will get reset upon container restart!
+## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
+## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
+# https://matrix-org.github.io/synapse/latest/usage/configuration/config_documentation.html
+
+pid_file: /var/run/synapse/homeserver.pid
+server_name: "${SERVER_NAME}"
+public_baseurl: https://${SERVER_NAME}
+serve_server_wellknown: false
+web_client_location:
+report_stats: false
+
+## Networking
+listeners:
+  - type: http
+    port: ${HTTP_LISTEN_PORT}
+    tls: ${HTTP_ENABLE_TLS,,}
+    x_forwarded: ${HTTP_LISTEN_X_FORWARDED,,}
+    bind_addresses: ['0.0.0.0']
+    resources:
+      - names: [client, federation]
+        compress: ${HTTP_LISTEN_COMPRESS,,}
+#  - type: metrics
+#    port: 8009
+#    bind_addresses: ['127.0.0.1']
+
+## Database
+${synapse_db}
+
+### Authentication
+#modules:
+#  - module: "ldap_auth_provider.LdapAuthProviderModule"
+#    config:
+#      enabled: false
+#      mode: "search"
+#      uri: "ldap://ldap.example.com:389"
+#      start_tls: false
+#      base: "dc=example,dc=com"
+#      default_domain: example.com
+#      attributes:
+#        uid: "uid"
+#        mail: "mail"
+#        name: "displayName"
+#      bind_dn: "cn=dsa-synapse,ou=dsa,ou=Access,dc=example,dc=com"
+#      bind_password: "password"
+#      filter: "(objectClass=inetOrgPerson)"
+#
+#password_providers:
+#  - module: "rest_auth_provider.RestAuthProvider"
+#    config:
+#      endpoint: "http://rest.example.com"
+#
+#oidc_providers:
+#  - idp_id: auth-example-com
+#    idp_name: SSO
+#    discover: true
+#    issuer: "https://auth.example.com/"
+#    client_id: "synapse-example-com"
+#    client_secret: "secret"
+#    #user_profile_method: "userinfo_endpoint"
+#    # ^ if removed and using LLNG force sending claims in id token
+#    scopes:
+#      - "openid"
+#      - "profile"
+#      - "email"
+#    user_mapping_provider:
+#      config:
+#        subject_claim: "sub"
+#        localpart_template: "{{ user.preferred_username }}"
+#        display_name_template: "{{ user.given_name }} {{ user.family_name }}"
+#        email_template: "{{ user.email }}"
+#
+
+## Email
+email:
+  smtp_host: postfix-relay
+  smtp_port: 25
+  smtp_user:
+  smtp_pass:
+  force_tls: false
+  require_transport_security: false
+  enable_tls: false
+  notif_from: "Your Friendly %(app)s homeserver <noreply@example.com>"
+  app_name: my_branded_matrix_server
+  enable_notifs: false
+  notif_for_new_users: false
+  client_base_url: "http://localhost/riot"
+  validation_token_lifetime: 15m
+  invite_client_location: https://app.element.io
+  subjects:
+    message_from_person_in_room: "[%(app)s] You have a message on %(app)s from %(person)s in the %(room)s room..."
+    message_from_person: "[%(app)s] You have a message on %(app)s from %(person)s..."
+    messages_from_person: "[%(app)s] You have messages on %(app)s from %(person)s..."
+    messages_in_room: "[%(app)s] You have messages on %(app)s in the %(room)s room..."
+    messages_in_room_and_others: "[%(app)s] You have messages on %(app)s in the %(room)s room and others..."
+    messages_from_person_and_others: "[%(app)s] You have messages on %(app)s from %(person)s and others..."
+    invite_from_person_to_room: "[%(app)s] %(person)s has invited you to join the %(room)s room on %(app)s..."
+    invite_from_person: "[%(app)s] %(person)s has invited you to chat on %(app)s..."
+    password_reset: "[%(server_name)s] Password reset"
+    email_validation: "[%(server_name)s] Validate your email"
+
+## Federation
+allow_profile_lookup_over_federation: true
+allow_device_name_lookup_over_federation: false
+key_refresh_interval: 1d
+suppress_key_server_warning: false
+trusted_key_servers:
+  - server_name: "matrix.org"
+
+## Logging
+log_config: "${CONFIG_PATH}/${SERVER_NAME}_log.config"
+
+## Media
+media_store_path: ${MEDIA_PATH}
+enable_media_repo: true
+media_retention:
+  local_media_lifetime: 90d
+  remote_media_lifetime: 14d
+uploads_path: ${UPLOAD_PATH}
+max_upload_size: "50M"
+max_image_pixels:  "32M"
+max_spider_size: "10M"
+dynamic_thumbnails: true
+thumbnail_sizes:
+  - width: 32
+    height: 32
+    method: crop
+  - width: 96
+    height: 96
+    method: crop
+  - width: 320
+    height: 240
+    method: scale
+  - width: 640
+    height: 480
+    method: scale
+  - width: 800
+    height: 600
+    method: scale
+
+## Performance
+### Background Updates
+background_updates:
+    background_update_duration_ms: 100
+    sleep_enabled: true
+    sleep_duration_ms: 1000
+    min_batch_size: 1
+    default_batch_size: 100
+
+### Caches
+event_cache_size: "10K"
+caches:
+  global_factor: 0.5
+  per_cache_factors:
+    get_users_who_share_room_with_user: 2.0
+  expire_caches: true
+  cache_entry_ttl: 30m
+  sync_response_cache_duration: 2m
+#  cache_autotuning:
+#    max_cache_memory_usage:
+#    target_cache_memory_usage:
+#    min_cache_ttl:
+
+### Rate Limiting
+rc_message:
+  per_second: 0.2
+  burst_count: 10
+rc_registration:
+  per_second: 0.17
+  burst_count: 3
+rc_registration_token_validity:
+  per_second: 0.1
+  burst_count: 6
+rc_login:
+  address:
+    per_second: 0.17
+    burst_count: 3
+  account:
+    per_second: 0.17
+    burst_count: 3
+  failed_attempts:
+    per_second: 0.17
+    burst_count: 3
+rc_joins:
+  local:
+    per_second: 0.1
+    burst_count: 10
+  remote:
+    per_second: 0.01
+    burst_count: 10
+rc_joins_per_room:
+  per_second: 1
+  burst_count: 10
+rc_3pid_validation:
+  per_second: 0.003
+  burst_count: 5
+rc_invites:
+  per_room:
+    per_second: 0.3
+    burst_count: 10
+  per_user:
+    per_second: 0.003
+    burst_count: 5
+  per_issuer:
+    per_second: 0.5
+    burst_count: 5
+rc_third_party_invite:
+  per_second: 0.2
+  burst_count: 10
+rc_federation:
+  window_size: 1000
+  sleep_limit: 10
+  sleep_delay: 500
+  reject_limit: 50
+  concurrent: 3
+federation_rr_transactions_per_room_per_second: 50
+
+## Rooms
+allow_per_room_profiles: true
+allow_public_rooms_without_auth: false
+enable_room_list_search: true
+encryption_enabled_by_default_for_room_type: off
+presence:
+  enabled: true
+stats:
+  enabled: true
+
+## Secrets
+form_secret: "${SECRET_FORM}"
+macaroon_secret_key: "${SECRET_MACAROON}"
+registration_shared_secret: "${SECRET_REGISTRATION}"
+signing_key_path: "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key"
+
+## Security and Passwords
+bcrypt_rounds: 12
+
+## Server Features
+admin_contact: 'mailto:${CONTACT_ADMIN_EMAIL}'
+enable_registration: false
+enable_registration_without_verification: false
+registration_requires_token: false
+allow_guest_access: false
+#default_room_version: "9"
+block_non_admin_invites: false
+enable_group_creation: false
+enable_search: true
+expire_access_token: false
+hs_disabled: false
+hs_disabled_message: "Home server is disabled"
+include_profile_data_on_invite: true
+limit_profile_requests_to_users_who_share_rooms: false
+max_avatar_size: 10M
+require_auth_for_profile_requests: true
+require_membership_for_aliases: true
+user_ips_max_age: 28d
+
+## Users
+enable_set_displayname: true
+enable_set_avatar_url: true
+enable_3pid_changes: true
+user_directory:
+  enabled: true
+  search_all_users: false
+  prefer_local_users: false
+
+## Templates
+templates:
+  custom_template_directory: ${TEMPLATE_PATH}
+
+## URL Previews
+url_preview_enabled: true
+url_preview_ip_range_blacklist:
+  - '127.0.0.0/8'
+  - '10.0.0.0/8'
+  - '172.16.0.0/12'
+  - '192.168.0.0/16'
+  - '100.64.0.0/10'
+  - '192.0.0.0/24'
+  - '169.254.0.0/16'
+  - '192.88.99.0/24'
+  - '198.18.0.0/15'
+  - '192.0.2.0/24'
+  - '198.51.100.0/24'
+  - '203.0.113.0/24'
+  - '224.0.0.0/4'
+  - '::1/128'
+  - 'fe80::/10'
+  - 'fc00::/7'
+  - '2001:db8::/32'
+  - 'ff00::/8'
+  - 'fec0::/10'
+
+## Voice over IP
+#turn_uris: [turn:example.org]
+#turn_shared_secret: "YOUR_SHARED_SECRET"
+#turn_username: "TURNSERVER_USERNAME"
+#turn_password: "TURNSERVER_PASSWORD"
+turn_user_lifetime: 1h
+turn_allow_guests: true
+
+########
+#From tutorials
+disable_msisdn_registration: true
+
+EOF
+        fi
+
+        yq -i   '
+                    del(.listeners[] | select(.type=="http"))
+                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        if var_true "${ENABLE_HTTP}" ; then
+            yq -i   '
+                        .listeners +=  {
+                                            "type": "http" ,
+                                            "port": '$(echo ${HTTP_LISTEN_PORT})',
+                                            "tls": '$(echo ${HTTP_LISTEN_ENABLE_TLS,,})',
+                                            "x_forwarded": '$(echo ${HTTP_LISTEN_X_FORWARDED,,})',
+                                            "bind_addresses": ["0.0.0.0"],
+                                            "resources": [
+                                                "client",
+                                                "federation"
+                                            ]
+                                        }
+                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+        yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        if var_true "${ENABLE_METRICS}" ; then
+            yq -i   '
+                        .listeners +=   {
+                                            "type": "metrics" ,
+                                            "port": '$(echo ${METRICS_LISTEN_PORT})',
+                                            "bind_addresses": ["127.0.0.1"]
+                                        }
+                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+
+        if [ -n "${SECRET_FORM}" ] ; then
+            yq -i '.form_secret = env(SECRET_FORM)' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+        if [ -n "${SECRET_MACAROON}" ] ; then
+            yq -i '.macaroon_secret_key = env(SECRET_MACAROON)' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+        if [ -n "${SECRET_REGISTRATION}" ] ; then
+            yq -i '.registration_shared_secret = env(SECRET_REGISTRATION)' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+        yq -i '.log_config = "'$(echo "${CONFIG_PATH}/${SERVER_NAME}_log.config")'"' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        yq -i   '
+                    .media_store_path = env(MEDIA_PATH) |
+                    .signing_key_path = "'$(echo "${CERT_PATH}/${SERVER_NAME,,// //}_signing.key")'" |
+                    .uploads_path = env(UPLOAD_PATH)
+                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        case "${DB_TYPE,,}" in
+            postgres* )
+                :
+                yq -i   '
+                            .database.txn_limit = env(DB_TRANSACTION_LIMIT) |
+                            .database.args.host = env(DB_HOST) |
+                            .database.args.port = env(DB_PORT) |
+                            .database.args.database = env(DB_NAME) |
+                            .database.args.user = env(DB_USER) |
+                            .database.args.password = env(DB_PASS) |
+                            .database.args.cp_min = env(DB_POOL_MIN) |
+                            .database.args.cp_max = env(DB_POOL_MAX)
+                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            ;;
+            sqlite* )
+                yq -i   '
+                            .database.database =  "'$(echo "${DB_SQLITE_PATH}/${DB_SQLITE_NAME}")'"
+                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
+            ;;
+        esac
+
+        if [ ! -f "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key ] ; then
+            /usr/bin/generate_signing_key | silent sudo -u synapse tee "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key
+        fi
+
+        case "${LOG_FORMAT,,}" in
+            json | structured )
+                export log_format="structured"
+            ;;
+            normal | standard | * )
+                export log_format="precise"
+            ;;
+        esac
+
+        case "${LOG_FORMAT_CONSOLE,,}" in
+            json | structured )
+                export log_format_console="structured"
+            ;;
+            normal | standard | * )
+                export log_format_console="precise"
+            ;;
+        esac
+
+        case "${LOG_FORMAT_FILE,,}" in
+            json | structured )
+                export log_format_file="structured"
+            ;;
+            normal | standard | * )
+                export log_format_file="precise"
+            ;;
+        esac
+
+        case "${LOG_TYPE,,}" in
+            "both" ) export LOG_TYPE="console,buffer" ;;
+            "console" ) export LOG_TYPE="console" ;;
+            "file" ) export LOG_TYPE="buffer" ;;
+        esac
+
+        if [ "${LOG_TYPE,,}" = "file" ] ; then
+            export LOG_TYPE="buffer"
+        fi
+
+        if  [ ! -f "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config ] || var_true "${REFRESH_CONFIGURATION}" ; then; then
+            cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
+## tiredofit/synapse Synapse Logging Configuration
+## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
+## Last Generated on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')
+#
+# [1]: https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
+# [2]: https://matrix-org.github.io/synapse/latest/structured_logging.html
+
+version: 1
+
+formatters:
+    precise:
+        format: '%(asctime)s - %(name)s - %(lineno)d - %(levelname)s - %(request)s - %(message)s'
+    structured:
+        class: synapse.logging.TerseJsonFormatter
+
+handlers:
+    file:
+        class: logging.FileHandler
+        formatter: ${log_format_file}
+        filename: ${LOG_PATH}/${LOG_FILE}
+        encoding: utf8
+
+    buffer:
+        class: synapse.logging.handlers.PeriodicallyFlushingMemoryHandler
+        target: file
+        capacity: ${LOG_BUFFER}
+        # Other values: 50 (CRITICAL), 30 (WARNING), 20 (INFO), 10 (DEBUG)
+        flushLevel: ${LOG_LEVEL_FLUSH}
+        period: ${LOG_INTERVAL_FLUSH_FORCE}
+
+    console:
+        class: logging.StreamHandler
+        formatter: ${log_format_console}
+
+loggers:
+    ldap3:
+       level: ${LOG_LEVEL_LDAP}
+    ldap_auth_provider:
+       level: ${LOG_LEVEL_LDAP_AUTH_PROVIDER}
+    synapse.storage.SQL:
+        level: ${LOG_LEVEL_SQL}
+
+root:
+    level: ${LOG_LEVEL}
+    handlers: [${LOG_TYPE,,}]
+
+disable_existing_loggers: false
+EOF
+        fi
+
+        yq -i '
+            .handlers.file.formatter = env(log_format_file) |
+            .handlers.file.filename = "'$(echo "${LOG_PATH}/${LOG_FILE}")'" |
+            .handlers.buffer.capacity = env(LOG_BUFFER) |
+            .handlers.buffer.flushLevel = env(LOG_LEVEL_FLUSH) |
+            .handlers.buffer.period = env(LOG_INTERVAL_FLUSH_FORCE) |
+            .handlers.console.formatter = env(log_format_console)
+            .loggers.ldap3.level = env(LOG_LEVEL_LDAP) |
+            .loggers.ldap_auth_provider.level = env(LOG_LEVEL_LDAP_AUTH_PROVIDER) |
+            .loggers.synapse.storage.SQL.level = env(LOG_LEVEL_SQL) |
+            .root.level = env(LOG_LEVEL) |
+            .root.handlers = [ "'$(echo "${LOG_TYPE,,//,/\",\"}")'" ]
+        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+    else
+        print_debug "Manual mode detected - Using '${CONFIG_PATH}/${CONFIG_FILE}' for configuration"
+    fi
+}
+
+yq -i '
+                                .certificatesResolvers.letsencrypt.acme.dnsChallenge.resolvers = [ "'$(echo "${LETSENCRYPT_DNS_RESOLVER//,/\",\"}")'" ]
+                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
