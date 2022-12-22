@@ -121,9 +121,9 @@ Be sure to view the following repositories to understand all the customizable op
 ### Networking
 
 
-| Port | Protocol | Description |
-| ---- | -------- | ----------- |
-| `8008` | `tcp` | Synapse Homeserver |
+| Port   | Protocol | Description        |
+| ------ | -------- | ------------------ |
+| `8008` | `tcp`    | Synapse Homeserver |
 ## Maintenance
 ### Shell Access
 
@@ -279,17 +279,21 @@ Be sure to view the following repositories to understand all the customizable op
 
 #### Container Options
 
-| Variable        | Description                                         | Default                  |
-| --------------- | --------------------------------------------------- | ------------------------ |
-| `CERT_PATH`     | Signing Key Path                                    | `${DATA_PATH}/certs/`    |
-| `CONFIG_FILE`   | Configuration File                                  | `homeserver.yaml`        |
-| `CONFIG_PATH`   | Configuration File path                             | `${DATA_PATH}/config/`   |
-| `DATA_PATH`     | Data Path                                           | `/data/`                 |
-| `LOG_PATH`      | Log file path                                       | `/logs/`                 |
-| `MEDIA_PATH`    | Media / Assets path                                 | `${DATA_PATH}/media`     |
-| `SETUP_MODE`    | Update configuration based on environment variables | `AUTO`                   |
-| `TEMPLATE_PATH` | Email Templates                                     | `${DATA_PATH}/templates` |
-| `UPLOAD_PATH`   | Uploads Path                                        | `${DATA_PATH}/uploads`   |
+| Variable             | Description                                          | Default                  |
+| -------------------- | ---------------------------------------------------- | ------------------------ |
+| `CERT_PATH`          | Signing Key Path                                     | `${DATA_PATH}/certs/`    |
+| `CONFIG_FILE`        | Configuration File                                   | `homeserver.yaml`        |
+| `CONFIG_PATH`        | Configuration File path                              | `${DATA_PATH}/config/`   |
+| `DATA_PATH`          | Data Path                                            | `/data/`                 |
+| `LOG_FORMAT`         | What format of logs `STANDARD` or `JSON`             | `STANDARD`               |
+| `LOG_FORMAT_CONSOLE` | What format of logs `STANDARD` or `JSON` for console | `${LOG_FORMAT}`          |
+| `LOG_FORMAT_FILE`    | What format of logs `STANDARD` or `JSON` for file    | `${LOG_FORMAT}`          |
+| `LOG_PATH`           | Log file path                                        | `/logs/`                 |
+| `LOG_TYPE`           | How to display logs `FILE`,`CONSOLE` or `BOTH`       | `FILE`                   |
+| `MEDIA_PATH`         | Media / Assets path                                  | `${DATA_PATH}/media`     |
+| `SETUP_MODE`         | Update configuration based on environment variables  | `AUTO`                   |
+| `TEMPLATE_PATH`      | Email Templates                                      | `${DATA_PATH}/templates` |
+| `UPLOAD_PATH`        | Uploads Path                                         | `${DATA_PATH}/uploads`   |
 
 #### Application Options
 
