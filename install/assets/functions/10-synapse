@@ -24,7 +24,7 @@ bootstrap_filesystem() {
         file | both )
             create_logrotate synapse "${LOG_PATH}"/"${LOG_FILE}" synapse synapse
         ;;
-    fi
+    esac
 
     if [ ! -d "${MEDIA_PATH}" ]; then
         mkdir -p "${MEDIA_PATH}"
@@ -71,16 +71,50 @@ generate_configuration(){
     if [ "${SETUP_MODE,,}" = "auto" ] ; then
         print_debug "Automatically generating configuration based on environment variables and defaults"
 
+        if [ ! -f "${CONFIG_PATH}"/.synapse-version ] ; then
+            echo "${SYNAPSE_VERSION} first installed on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" > "${CONFIG_PATH}"/.synapse-version
+        elif [ "${SYNAPSE_VERSION}" != "$(tail -n1 "${CONFIG_PATH}"/.synapse-version) | awk '{print $1}')" ] ; then
+            echo "${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" >> "${CONFIG_PATH}"/.synapse-version
+        fi
+
+        if [ ! -f "${CONFIG_PATH}"/keys ] ; then
+            cat << EOF > "${CONFIG_PATH}"/keys
+## Don't delete this file. This contains your keys and allows them to persist should you not be setting any SECRET_ variables
+
+EOF
+        fi
+
         if [ -z "${SECRET_FORM}" ] ; then
-            export SECRET_FORM=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+            if grep -q "secret_form = " ${CONFIG_PATH}"/keys" ; then
+                    secret_form="$(grep "secret_form =" "${CONFIG_PATH}"/keys | cut -d = -f 2 | xargs)"
+                else
+                    print_notice "[generate_configuration] No SECRET_FORM detected, automatically generating"
+                    secret_form=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+                    echo "secret_form = ${secret_form}" >> "${CONFIG_PATH}"/keys
+            fi
+            export SECRET_FORM="${secret_form}"
         fi
 
         if [ -z "${SECRET_MACAROON}" ] ; then
-            export SECRET_MACAROON=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+            if grep -q "secret_macaroon = " ${CONFIG_PATH}"/keys" ; then
+                    secret_macaroon="$(grep "secret_macaroon =" "${CONFIG_PATH}"/keys | cut -d = -f 2 | xargs)"
+                else
+                    print_notice "[generate_configuration] No SECRET_MACAROON detected, automatically generating"
+                    secret_macaroon=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+                    echo "secret_macaroon = ${secret_macaroon}" >> "${CONFIG_PATH}"/keys
+            fi
+            export SECRET_MACAROON="${secret_macaroon}"
         fi
 
         if [ -z "${SECRET_REGISTRATION}" ] ; then
-            export SECRET_REGISTRATION=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+            if grep -q "secret_registration = " ${CONFIG_PATH}"/keys" ; then
+                    secret_registration="$(grep "secret_registration =" "${CONFIG_PATH}"/keys | cut -d = -f 2 | xargs)"
+                else
+                    print_notice "[generate_configuration] No SECRET_REGISTRATION detected, automatically generating"
+                    secret_registration=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 128 | head -n 1)
+                    echo "secret_registration = ${secret_registration}" >> "${CONFIG_PATH}/keys"
+            fi
+            export SECRET_REGISTRATION="${secret_registration}"
         fi
 
         if  [ ! -f "${CONFIG_PATH}"/"${CONFIG_FILE}" ] || var_true "${REFRESH_CONFIGURATION}"; then
@@ -132,14 +166,11 @@ listeners:
   - type: http
     port: ${HTTP_LISTEN_PORT}
     tls: ${HTTP_ENABLE_TLS,,}
-    x_forwarded: ${HTTP_LISTEN_X_FORWARDED,,}
-    bind_addresses: ['0.0.0.0']
+    x_forwarded: ${HTTP_ENABLE_X_FORWARDED,,}
+    bind_addresses: ['${HTTP_LISTEN_IP}']
     resources:
-      - names: [client, federation]
-        compress: ${HTTP_LISTEN_COMPRESS,,}
-#  - type: metrics
-#    port: 8009
-#    bind_addresses: ['127.0.0.1']
+      - names: [${HTTP_MODE}]
+        compress: ${HTTP_ENABLE_COMPRESSION,,}
 
 ## Database
 ${synapse_db}
@@ -421,34 +452,42 @@ disable_msisdn_registration: true
 
 EOF
         fi
+set -x
+
 
         yq -i   '
                     del(.listeners[] | select(.type=="http"))
                 ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
         if var_true "${ENABLE_HTTP}" ; then
-            yq -i   '
-                        .listeners +=  {
-                                            "type": "http" ,
-                                            "port": '$(echo ${HTTP_LISTEN_PORT})',
-                                            "tls": '$(echo ${HTTP_LISTEN_ENABLE_TLS,,})',
-                                            "x_forwarded": '$(echo ${HTTP_LISTEN_X_FORWARDED,,})',
-                                            "bind_addresses": ["0.0.0.0"],
-                                            "resources": [
-                                                "client",
-                                                "federation"
-                                            ]
+            yq -i   '.listeners +=   [
+                                        {
+                                            "type" : "http",
+                                            "port" : env(HTTP_LISTEN_PORT),
+                                            "tls" : env(HTTP_ENABLE_TLS),
+                                            "x-forwarded" : env(HTTP_ENABLE_X_FORWARDED),
+                                            "bind_addresses" : [ "'$(echo ${HTTP_LISTEN_IP//,/\",\"})'" ],
+                                            "resources" :   [
+                                                                {
+                                                                    "names" : [ "'$(echo ${HTTP_MODE//,/\",\"})'" ],
+                                                                    "compress" : env(HTTP_ENABLE_COMPRESSION)
+                                                                }
+                                                            ]
                                         }
+                                    ]
                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
+set +x
+
         yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_METRICS}" ; then
-            yq -i   '
-                        .listeners +=   {
-                                            "type": "metrics" ,
-                                            "port": '$(echo ${METRICS_LISTEN_PORT})',
-                                            "bind_addresses": ["127.0.0.1"]
+            yq -i   '.listeners +=   [
+                                        {
+                                            "type" : "metrics",
+                                            "port" : env(METRICS_LISTEN_PORT),
+                                            "bind_addresses" : [ "'$(echo ${METRICS_LISTEN_IP//,/\",\"})'" ]
                                         }
+                                    ]
                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
 
@@ -470,7 +509,6 @@ EOF
 
         case "${DB_TYPE,,}" in
             postgres* )
-                :
                 yq -i   '
                             .database.txn_limit = env(DB_TRANSACTION_LIMIT) |
                             .database.args.host = env(DB_HOST) |
@@ -495,28 +533,28 @@ EOF
 
         case "${LOG_FORMAT,,}" in
             json | structured )
-                export log_format="structured"
+                export LOG_FORMAT="structured"
             ;;
             normal | standard | * )
-                export log_format="precise"
+                export LOG_FORMAT="precise"
             ;;
         esac
 
         case "${LOG_FORMAT_CONSOLE,,}" in
             json | structured )
-                export log_format_console="structured"
+                export LOG_FORMAT_CONSOLE="structured"
             ;;
             normal | standard | * )
-                export log_format_console="precise"
+                export LOG_FORMAT_CONSOLE="precise"
             ;;
         esac
 
         case "${LOG_FORMAT_FILE,,}" in
             json | structured )
-                export log_format_file="structured"
+                export LOG_FORMAT_FILE="structured"
             ;;
             normal | standard | * )
-                export log_format_file="precise"
+                export LOG_FORMAT_FILE="precise"
             ;;
         esac
 
@@ -530,7 +568,7 @@ EOF
             export LOG_TYPE="buffer"
         fi
 
-        if  [ ! -f "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config ] || var_true "${REFRESH_CONFIGURATION}" ; then; then
+        if  [ ! -f "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config ] || var_true "${REFRESH_CONFIGURATION}" ; then
             cat <<EOF | silent sudo -u synapse tee "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
 ## tiredofit/synapse Synapse Logging Configuration
 ## If you want to use your own configuration files set SETUP_TYPE=MANUAL when starting container
@@ -550,7 +588,7 @@ formatters:
 handlers:
     file:
         class: logging.FileHandler
-        formatter: ${log_format_file}
+        formatter: ${LOG_FORMAT_FILE}
         filename: ${LOG_PATH}/${LOG_FILE}
         encoding: utf8
 
@@ -564,7 +602,7 @@ handlers:
 
     console:
         class: logging.StreamHandler
-        formatter: ${log_format_console}
+        formatter: ${LOG_FORMAT_CONSOLE}
 
 loggers:
     ldap3:
@@ -583,23 +621,20 @@ EOF
         fi
 
         yq -i '
-            .handlers.file.formatter = env(log_format_file) |
+            .handlers.file.formatter = env(LOG_FORMAT_FILE) |
             .handlers.file.filename = "'$(echo "${LOG_PATH}/${LOG_FILE}")'" |
             .handlers.buffer.capacity = env(LOG_BUFFER) |
             .handlers.buffer.flushLevel = env(LOG_LEVEL_FLUSH) |
             .handlers.buffer.period = env(LOG_INTERVAL_FLUSH_FORCE) |
-            .handlers.console.formatter = env(log_format_console)
+            .handlers.console.formatter = env(LOG_FORMAT_CONSOLE) |
             .loggers.ldap3.level = env(LOG_LEVEL_LDAP) |
             .loggers.ldap_auth_provider.level = env(LOG_LEVEL_LDAP_AUTH_PROVIDER) |
             .loggers.synapse.storage.SQL.level = env(LOG_LEVEL_SQL) |
             .root.level = env(LOG_LEVEL) |
             .root.handlers = [ "'$(echo "${LOG_TYPE,,//,/\",\"}")'" ]
-        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        ' "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
     else
         print_debug "Manual mode detected - Using '${CONFIG_PATH}/${CONFIG_FILE}' for configuration"
     fi
 }
 
-yq -i '
-                                .certificatesResolvers.letsencrypt.acme.dnsChallenge.resolvers = [ "'$(echo "${LETSENCRYPT_DNS_RESOLVER//,/\",\"}")'" ]
-                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
