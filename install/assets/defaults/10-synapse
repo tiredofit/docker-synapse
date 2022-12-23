@@ -4,6 +4,7 @@ DATA_PATH=${DATA_PATH:-"/data/"} # Keep this on top
 #
 ADMIN_USER=${ADMIN_USER:-"synapse"}
 ADMIN_PASS=${ADMIN_PASS:-"tiredofit"}
+APPSERVICE_PATH=${APPSERVICE_PATH:-"${DATA_PATH}/appservice"}
 CERT_PATH=${CERT_PATH:-"${DATA_PATH}/certs/"}
 CONFIG_FILE=${CONFIG_FILE:-"homeserver.yaml"}
 CONFIG_PATH=${CONFIG_PATH:-"${DATA_PATH}/config/"}

@@ -6,6 +6,11 @@ bootstrap_filesystem() {
     fi
     if [ $(stat -c %U "${DATA_PATH}") != "synapse" ] ; then chown synapse:synapse "${DATA_PATH}" ; fi
 
+    if [ ! -d "${APPSERVICE_PATH}" ]; then
+        mkdir -p "${APPSERVICE_PATH}"
+    fi
+    if [ $(stat -c %U "${APPSERVICE_PATH}") != "synapse" ] ; then chown synapse:synapse "${APPSERVICE_PATH}" ; fi
+
     if [ ! -d "${CERT_PATH}" ]; then
         mkdir -p "${CERT_PATH}"
     fi
@@ -452,13 +457,8 @@ disable_msisdn_registration: true
 
 EOF
         fi
-set -x
 
-
-        yq -i   '
-                    del(.listeners[] | select(.type=="http"))
-                ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
-
+        yq -i   'del(.listeners[] | select(.type=="http"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_HTTP}" ; then
             yq -i   '.listeners +=   [
                                         {
@@ -477,7 +477,6 @@ set -x
                                     ]
                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         fi
-set +x
 
         yq -i 'del(.listeners[] | select(.type=="metrics"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_METRICS}" ; then
