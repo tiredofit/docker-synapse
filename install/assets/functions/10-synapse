@@ -9,7 +9,7 @@ bootstrap_filesystem() {
     if [ ! -d "${APPSERVICE_PATH}" ]; then
         mkdir -p "${APPSERVICE_PATH}"
     fi
-    if [ $(stat -c %U "${APPSERVICE_PATH}") != "synapse" ] ; then chown synapse:synapse "${APPSERVICE_PATH}" ; fi
+    if [ $(stat -c %U "${APPSERVICE_PATH}") != "synapse" ] ; then silent chown synapse:synapse "${APPSERVICE_PATH}" ; fi
 
     if [ ! -d "${CERT_PATH}" ]; then
         mkdir -p "${CERT_PATH}"
@@ -161,7 +161,7 @@ EOF
 
 pid_file: /var/run/synapse/homeserver.pid
 server_name: "${SERVER_NAME}"
-public_baseurl: https://${SERVER_NAME}
+public_baseurl: ${SERVER_URL}
 serve_server_wellknown: false
 web_client_location:
 report_stats: false
