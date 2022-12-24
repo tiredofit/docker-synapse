@@ -457,6 +457,9 @@ disable_msisdn_registration: true
 
 EOF
         fi
+        yq -i   '
+                    .public_baseurl = env(SERVER_URL)
+                '  "${CONFIG_PATH}"/"${CONFIG_FILE}"
 
         yq -i   'del(.listeners[] | select(.type=="http"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         if var_true "${ENABLE_HTTP}" ; then
