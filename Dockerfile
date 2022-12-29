@@ -43,6 +43,7 @@ RUN source assets/functions/00-container && \
                     && \
     \
     package install .synapse-run-deps \
+                    inotify-tools \
                     libpq \
                     postgresql15-client \
                     python3 \

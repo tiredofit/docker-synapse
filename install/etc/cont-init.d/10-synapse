@@ -12,7 +12,6 @@ sanity_db postgres
 db_ready postgres
 bootstrap_filesystem
 generate_configuration
-create_admin_user
 check_version
 
 liftoff

@@ -1,5 +1,20 @@
 #!/command/with-contenv bash
 
+autogenerate_appservice() {
+    touch "${CONFIG_PATH}"/appservices.yml
+    yq -i   '
+                del(.app_service_config_files)
+            '  "${CONFIG_PATH}"/appservices.yml
+
+    for appservice in ${APPSERVICE_PATH} ; do
+        export TOIAPPSERVICE=${appservice}
+        yq -i   '
+                    .app_service-config_files += [env(TOIAPPSERVICE)]
+                '  "${CONFIG_PATH}"/appservices.yml
+        unset TOIAPPSERVICE
+    done
+}
+
 bootstrap_filesystem() {
     if [ ! -d "${DATA_PATH}" ]; then
         mkdir -p "${DATA_PATH}"
@@ -59,16 +74,6 @@ check_version() {
         ## Do something
         sed -i --follow-symlinks "1 i\
         ${SYNAPSE_VERSION} upgraded on $(TZ=${TIMEZONE} date +'%Y-%m-%d %H:%M:%S %Z')" "${DATA_PATH}"/.synapse-version
-    fi
-}
-
-create_admin_user() {
-    if [ ! -f "${DATA_PATH}"/.syanpse-version ] && [ "${SETUP_TYPE,,}" != "manual" ]; then
-        if var_false "${CREATE_ADMIN_USER}" ; then
-            rm -rf /etc/services.available/91-create_admin_user
-        fi
-    else
-        rm -rf /etc/services.available/91-create_admin_user
     fi
 }
 
@@ -528,6 +533,10 @@ EOF
                         ' "${CONFIG_PATH}"/"${CONFIG_FILE}" -o yaml
             ;;
         esac
+
+        if [ -d "${APPSERVICE_PATH}" ] && dir_notempty "${APPSERVICE_PATH}" ; then
+            autogenerate_appservice
+        fi
 
         if [ ! -f "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key ] ; then
             /usr/bin/generate_signing_key | silent sudo -u synapse tee "${CERT_PATH}"/"${SERVER_NAME,,// //}"_signing.key

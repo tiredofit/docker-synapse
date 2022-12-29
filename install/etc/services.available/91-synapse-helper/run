@@ -1,0 +1,45 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+PROCESS_NAME="create_admin_user"
+source /assets/defaults/10-synapse
+source /assets/functions/10-synapse
+
+check_container_initialized
+check_service_initialized 10-synapse
+
+liftoff
+
+if var_true "${CREATE_ADMIN_USER}" && [ "${SETUP_TYPE,,}" != "manual" ] && [ "$(wc -l ${DATA_PATH}/.synapse-version)" = "1" ]; then
+    wait_counter=0
+    while ! pgrep -f "python3 -m synapse.app.homeserver" > /dev/null ; do
+        sleep 5
+        (( wait_counter +=5 ))
+        print_debug "Waiting for Synapse process to start ($wait_counter seconds so far)" ;
+    done
+
+    wait_for_port localhost ${HTTP_LISTEN_PORT}
+    print_info "Creating Admin User"
+    silent /usr/bin/register_new_matrix_user \
+                                        -u "${ADMIN_USER}" \
+                                        -p "${ADMIN_PASS}" \
+                                        -a \
+                                        -c "${CONFIG_PATH}"/"${CONFIG_FILE}" \
+                                        http://localhost:${HTTP_LISTEN_PORT}
+fi
+
+if var_true "${ENABLE_APPSERVICE_WATCHER}" ; then
+    dont_remove=true
+    ## Watch APPSERVICE_DIRECTORY
+    while inotifywait -q -e create,delete,modify,attrib ${APPSERVICE_PATH} ; do
+        print_info "Reloading synapse configuration do to a detected appservice change change"
+        autogenerate_appservice
+        sleep 5
+        pkill -9 -f "synapse.app.homeserver"
+        exit 0
+    done
+fi
+
+if var_nottrue "${dont_remove}" ; then
+    s6-svc -d /var/run/s6/legacy-services/91-synapse-helper
+fi
