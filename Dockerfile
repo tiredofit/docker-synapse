@@ -47,7 +47,6 @@ RUN source assets/functions/00-container && \
                     libpq \
                     postgresql15-client \
                     python3 \
-                    sqlite \
                     py3-asn1 \
                     py3-asn1-modules \
                     py3-attrs \
@@ -91,6 +90,7 @@ RUN source assets/functions/00-container && \
                     py3-typing-extensions \
                     py3-yaml \
                     sed \
+                    sqlite \
                     && \
     \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \

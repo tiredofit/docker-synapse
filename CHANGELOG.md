@@ -1,3 +1,10 @@
+## 0.0.3 2023-01-17 <dave at tiredofit dot ca>
+
+   ### Added
+      - Synapse 1.75.0
+      - S3 Provider 0.2.0
+
+
 ## 0.0.2 2022-12-23 <dave at tiredofit dot ca>
 
    ### Added
@@ -16,5 +23,4 @@
       - Included S3 Filesystem Provider
       - Included Rest Password Provider
       - Automatic generation of config, keys, and log information
-
 
