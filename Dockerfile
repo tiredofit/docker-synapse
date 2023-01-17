@@ -60,6 +60,7 @@ RUN source assets/functions/00-container && \
                     py3-eliot \
                     py3-frozendict \
                     py3-humanize \
+                    py3-icu \
                     py3-idna \
                     py3-ijson \
                     py3-jinja2 \

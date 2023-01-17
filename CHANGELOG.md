@@ -1,3 +1,9 @@
+## 0.4.0 2023-01-17 <dave at tiredofit dot ca>
+
+   ### Added
+      - Add py3-icu from package manager
+
+
 ## 0.0.3 2023-01-17 <dave at tiredofit dot ca>
 
    ### Added
