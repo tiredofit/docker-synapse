@@ -17,6 +17,9 @@ ENV SYNAPSE_VERSION=${SYNAPSE_VERSION:-"v1.75.0"} \
     PROVIDER_LDAP_REPO_URL=https://github.com/matrix-org/matrix-synapse-ldap3 \
     PROVIDER_REST_REPO_URL=https://github.com/ma1uta/matrix-synapse-rest-password-provider \
     PROVIDER_S3_REPO_URL=https://github.com/ma1uta/matrix-synapse-s3-storage-provider \
+    NGINX_SITE_ENABLED="synapse" \
+    NGINX_ENABLE_CREATE_SAMPLE_HTML=FALSE \
+    NGINX_WORKER_PROCESSES=1 \
     IMAGE_NAME="tiredofit/synapse" \
     IMAGE_REPO_URL="https://github.com/tiredofit/synapse/"
 
