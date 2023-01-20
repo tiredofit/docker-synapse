@@ -1,6 +1,7 @@
-ARG ALPINE_VERSION=3.17
+ARG DISTRO=alpine
+ARG DISTRO_VARIANT=3.17
 
-FROM docker.io/tiredofit/alpine:${ALPINE_VERSION}
+FROM docker.io/tiredofit/nginx:${DISTRO}_${DISTRO_VARIANT}
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
 ARG SYNAPSE_VERSION
