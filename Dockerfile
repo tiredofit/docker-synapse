@@ -32,6 +32,8 @@ RUN source assets/functions/00-container && \
     package update && \
     package upgrade && \
     package install .synapse-build-deps \
+                    g++ \
+                    icu-dev \
                     py3-gpep517 \
                     py3-installer \
                     py3-poetry-core \
@@ -43,6 +45,7 @@ RUN source assets/functions/00-container && \
                     && \
     \
     package install .synapse-run-deps \
+                    icu \
                     inotify-tools \
                     libpq \
                     postgresql15-client \
@@ -60,7 +63,6 @@ RUN source assets/functions/00-container && \
                     py3-eliot \
                     py3-frozendict \
                     py3-humanize \
-                    py3-icu \
                     py3-idna \
                     py3-ijson \
                     py3-jinja2 \
@@ -94,6 +96,7 @@ RUN source assets/functions/00-container && \
                     sqlite \
                     && \
     \
+    pip install --upgrade --force "pyicu" && \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
     gpep517 build-wheel \
                  		--wheel-dir dist \
