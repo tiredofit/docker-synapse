@@ -1,7 +1,7 @@
 ARG DISTRO=alpine
 ARG DISTRO_VARIANT=3.17
 
-FROM docker.io/tiredofit/nginx:${DISTRO}_${DISTRO_VARIANT}
+FROM docker.io/tiredofit/nginx:${DISTRO}-${DISTRO_VARIANT}
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
 
 ARG SYNAPSE_VERSION

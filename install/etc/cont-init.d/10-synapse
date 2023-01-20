@@ -11,6 +11,7 @@ PROCESS_NAME="synapse"
 sanity_db postgres
 db_ready postgres
 bootstrap_filesystem
+configure_proxy
 generate_configuration
 check_version
 
