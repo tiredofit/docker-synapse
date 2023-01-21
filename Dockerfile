@@ -8,15 +8,18 @@ ARG SYNAPSE_VERSION
 ARG PROVIDDER_LDAP_VERSION
 ARG PROVIDER_REST_VERSION
 ARG PROVIDER_S3_VERSION
+ARG PROVIDER_SHARED_SECRET_VERSION
 
 ENV SYNAPSE_VERSION=${SYNAPSE_VERSION:-"v1.75.0"} \
     PROVIDER_LDAP_VERSION=${PROVIDER_LDAP_VERSION:-"v0.2.2"} \
     PROVIDER_REST_VERSION=${PROVIDER_REST_VERSION:-"v0.1.4"} \
     PROVIDER_S3_VERSION=${PROVIDER_S3_VERSION:-"v1.2.0"} \
+    PROVIDER_SHARED_SECRET_VERSION=${PROVIDER_SHARED_SECRET_VERSION:-"2.0.2"} \
     SYNAPSE_REPO_URL=https://github.com/matrix-org/synapse \
     PROVIDER_LDAP_REPO_URL=https://github.com/matrix-org/matrix-synapse-ldap3 \
     PROVIDER_REST_REPO_URL=https://github.com/ma1uta/matrix-synapse-rest-password-provider \
     PROVIDER_S3_REPO_URL=https://github.com/ma1uta/matrix-synapse-s3-storage-provider \
+    PROVIDER_SHARED_SECRET_REPO_URL=https://github.com/devture/matrix-synapse-shared-secret-auth \
     IMAGE_NAME="tiredofit/synapse" \
     IMAGE_REPO_URL="https://github.com/tiredofit/synapse/"
 
@@ -131,6 +134,9 @@ RUN source assets/functions/00-container && \
                         --output-fd 1 \
                         && \
     pip install --upgrade dist/*.whl && \
+    \
+    clone_git_repo "${PROVIDER_SHARED_SECRET_REPO_URL}" "${PROVIDER_SHARED_SECRET_VERSION}" && \
+    cp -R shared_secret_authenticator.py /usr/lib/python*/ && \
     \
     package remove .synapse-build-deps && \
     package cleanup && \

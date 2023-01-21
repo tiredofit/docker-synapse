@@ -1,3 +1,9 @@
+## 0.6.0 2023-01-21 <dave at tiredofit dot ca>
+
+   ### Added
+      - Add support for Shared Secret Authentication module
+
+
 ## 0.5.0 2023-01-20 <dave at tiredofit dot ca>
 
    ### Changed
