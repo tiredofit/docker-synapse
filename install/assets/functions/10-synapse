@@ -479,7 +479,7 @@ EOF
                                             "type" : "http",
                                             "port" : env(HTTP_LISTEN_PORT),
                                             "tls" : env(HTTP_ENABLE_TLS),
-                                            "x-forwarded" : env(HTTP_ENABLE_X_FORWARDED),
+                                            "x_forwarded" : env(HTTP_ENABLE_X_FORWARDED),
                                             "bind_addresses" : [ "'$(echo ${HTTP_LISTEN_IP//,/\",\"})'" ],
                                             "resources" :   [
                                                                 {
