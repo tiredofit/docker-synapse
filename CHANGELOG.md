@@ -1,3 +1,9 @@
+## 0.6.1 2023-01-21 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Fix to allow LOG_LEVEL_SHARED_SECRET_AUTHENTICATOR to be updated
+
+
 ## 0.6.0 2023-01-21 <dave at tiredofit dot ca>
 
    ### Added

@@ -662,6 +662,7 @@ EOF
             .loggers.ldap3.level = env(LOG_LEVEL_LDAP) |
             .loggers.ldap_auth_provider.level = env(LOG_LEVEL_LDAP_AUTH_PROVIDER) |
             .loggers.synapse.storage.SQL.level = env(LOG_LEVEL_SQL) |
+            .loggers.shared_secret_authenticator.level = env(LOG_LEVEL_SHARED_SECRET_AUTHENTICATOR) |
             .root.level = env(LOG_LEVEL) |
             .root.handlers = [ "'$(echo "${LOG_TYPE,,//,/\",\"}")'" ]
         ' "${CONFIG_PATH}"/"${SERVER_NAME}"_log.config
