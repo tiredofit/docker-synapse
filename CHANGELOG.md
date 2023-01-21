@@ -1,3 +1,9 @@
+## 0.5.0 2023-01-20 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Fix x_forwarded header for listeners
+
+
 ## 0.4.0 2023-01-17 <dave at tiredofit dot ca>
 
    ### Added

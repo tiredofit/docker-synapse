@@ -4,14 +4,14 @@ source /assets/functions/00-container
 set -a
 source /assets/defaults/10-synapse
 prepare_service
-
 set +a
+
 PROCESS_NAME="synapse"
 
 sanity_db postgres
 db_ready postgres
 bootstrap_filesystem
-configure_proxy
+
 generate_configuration
 check_version
 

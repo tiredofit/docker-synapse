@@ -76,13 +76,6 @@ check_version() {
     fi
 }
 
-configure_proxy() {
-    if var_notfalse "${ENABLE_NGINX}" ; then
-        update_template /etc/nginx/sites.enabled/"${NGINX_SITE_ENABLED}".conf \
-                                                                                HTTP_LISTEN_PORT
-    fi
-}
-
 generate_configuration(){
     if [ "${SETUP_MODE,,}" = "auto" ] ; then
         print_debug "Automatically generating configuration based on environment variables and defaults"
