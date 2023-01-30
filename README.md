@@ -79,7 +79,7 @@ docker pull docker.io/tiredofdit/synapse:(imagetag)
 Builds of the image are also available on the [Github Container Registry](https://github.com/tiredofit/docker-synapse/pkgs/container/docker-synapse) 
  
 ```
-docker pull ghcr.io/tiredofit/docker-synapse/pkgs/container/docker-synapse):(imagetag)
+docker pull ghcr.io/tiredofit/docker-synapse:(imagetag)
 ``` 
 
 The following image tags are available along with their tagged release based on what's written in the [Changelog](CHANGELOG.md):
@@ -242,7 +242,7 @@ docker pull docker.io/tiredofdit/synapse:(imagetag)
 Builds of the image are also available on the [Github Container Registry](https://github.com/tiredofit/docker-synapse/pkgs/container/docker-synapse) 
  
 ```
-docker pull ghcr.io/tiredofit/docker-synapse/pkgs/container/docker-synapse):(imagetag)
+docker pull ghcr.io/tiredofit/docker-synapse:(imagetag)
 ``` 
 
 The following image tags are available along with their tagged release based on what's written in the [Changelog](CHANGELOG.md):
