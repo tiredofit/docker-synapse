@@ -9,7 +9,7 @@
 
 ## About
 
-This will build a Docker Image for [Synapse] (https://matrix.oprg/docs/projects/server/synapse), A Matrix.org Homeserver
+This will build a Docker Image for [Synapse] (https://matrix.org/docs/projects/server/synapse), A Matrix.org Homeserver
 
 ## Maintainer
 
@@ -39,32 +39,6 @@ This will build a Docker Image for [Synapse] (https://matrix.oprg/docs/projects/
   - [Updates](#updates)
 - [License](#license)
 - [References](#references)
-- [About](#about-1)
-- [Maintainer](#maintainer-1)
-- [Table of Contents](#table-of-contents-1)
-- [Installation](#installation-1)
-  - [Build from Source](#build-from-source-1)
-  - [Prebuilt Images](#prebuilt-images-1)
-    - [Multi Architecture](#multi-architecture-1)
-- [Configuration](#configuration-1)
-  - [Quick Start](#quick-start-1)
-  - [Persistent Storage](#persistent-storage-1)
-  - [Environment Variables](#environment-variables-1)
-    - [Base Images used](#base-images-used-1)
-    - [Container Options](#container-options)
-    - [Application Options](#application-options)
-    - [Database Options](#database-options)
-  - [Networking](#networking-1)
-- [Maintenance](#maintenance-1)
-  - [Shell Access](#shell-access-1)
-- [Support](#support-1)
-  - [Usage](#usage-1)
-  - [Bugfixes](#bugfixes-1)
-  - [Feature Requests](#feature-requests-1)
-  - [Updates](#updates-1)
-- [License](#license-1)
-- [References](#references-1)
-
 
 ## Installation
 ### Build from Source
@@ -202,31 +176,6 @@ This will build a Docker Image for [Synapse] (https://matrix.oprg/docs/projects/
   - [Updates](#updates)
 - [License](#license)
 - [References](#references)
-- [About](#about-1)
-- [Maintainer](#maintainer-1)
-- [Table of Contents](#table-of-contents-1)
-- [Installation](#installation-1)
-  - [Build from Source](#build-from-source-1)
-  - [Prebuilt Images](#prebuilt-images-1)
-    - [Multi Architecture](#multi-architecture-1)
-- [Configuration](#configuration-1)
-  - [Quick Start](#quick-start-1)
-  - [Persistent Storage](#persistent-storage-1)
-  - [Environment Variables](#environment-variables-1)
-    - [Base Images used](#base-images-used-1)
-    - [Container Options](#container-options)
-    - [Application Options](#application-options)
-    - [Database Options](#database-options)
-  - [Networking](#networking-1)
-- [Maintenance](#maintenance-1)
-  - [Shell Access](#shell-access-1)
-- [Support](#support-1)
-  - [Usage](#usage-1)
-  - [Bugfixes](#bugfixes-1)
-  - [Feature Requests](#feature-requests-1)
-  - [Updates](#updates-1)
-- [License](#license-1)
-- [References](#references-1)
 
 
 ## Installation
