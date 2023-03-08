@@ -205,20 +205,20 @@ ${synapse_db}
 #       config:
 #         shared_secret: "YOUR_SHARED_SECRET_GOES_HERE"
 #
-#          # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
-#          # Below, we explicitly enable support for the old `m.login.password` login type,
+#          # By default, only login requests of type 'com.devture.shared_secret_auth' are supported.
+#          # Below, we explicitly enable support for the old 'm.login.password' login type,
 #          # which was used in v1 of matrix-synapse-shared-secret-auth and still widely supported by external software.
-#          # If you don't need such legacy support, consider setting this to `false` or omitting it entirely.
+#          # If you don't need such legacy support, consider setting this to 'false' or omitting it entirely.
 #          m_login_password_support_enabled: true
 #
-#          # By default, only login requests of type `com.devture.shared_secret_auth` are supported.
+#          # By default, only login requests of type 'com.devture.shared_secret_auth' are supported.
 #          # Advertising support for such an authentication type causes a problem with Element, however.
 #          # See: https://github.com/vector-im/element-web/issues/19605
 #          #
-#          # Uncomment the line below to disable `com.devture.shared_secret_auth` support.
+#          # Uncomment the line below to disable 'com.devture.shared_secret_auth support.
 #          # You will then need to:
-#          # - have `m_login_password_support_enabled: true` to enable the `m.login.password` login type
-#          # - authenticate using `m.login.password` requests, instead of ``com.devture.shared_secret_auth` requests
+#          # - have 'm_login_password_support_enabled: true' to enable the 'm.login.password' login type
+#          # - authenticate using 'm.login.password' requests, instead of 'com.devture.shared_secret_auth' requests
 #          # com_devture_shared_secret_auth_support_enabled: false
 #
 #

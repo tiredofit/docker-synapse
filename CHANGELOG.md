@@ -1,3 +1,9 @@
+## 0.6.5 2023-03-08 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Fix new installation breaking on backticks in the sample config file
+
+
 ## 0.6.4 2023-02-28 <dave at tiredofit dot ca>
 
    ### Added
