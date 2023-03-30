@@ -1,3 +1,9 @@
+## 0.6.8 2023-03-30 <dave at tiredofit dot ca>
+
+   ### Added
+      - S3 Provider 1.2.1
+
+
 ## 0.6.7 2023-03-28 <dave at tiredofit dot ca>
 
    ### Added
