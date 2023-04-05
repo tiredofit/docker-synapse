@@ -32,6 +32,7 @@ This will build a Docker Image for [Synapse] (https://matrix.oprg/docs/projects/
     - [Container Options](#container-options)
     - [Application Options](#application-options)
     - [Database Options](#database-options)
+    - [Media Options](#media-options)
   - [Networking](#networking)
 - [Maintenance](#maintenance)
   - [Shell Access](#shell-access)
@@ -172,6 +173,17 @@ Be sure to view the following repositories to understand all the customizable op
 | `DB_TYPE`                   | Database type `postgres` or `sqlite`  | `POSTGRES`             |
 | `DB_USER`                   | (postgres)  Postgresql User           |                        |
 
+#### Media Options
+
+| Variable                   | Description                      | Default |
+| -------------------------- | -------------------------------- | ------- |
+| `ENABLE_MEDIA_REPO`        | Enable inbuilt Media Repository  | `TRUE`  |
+| `MEDIA_DYNAMIC_THUMBNAILS` | Enable Dynamic Thumbnails        | `TRUE`  |
+| `MEDIA_MAX_UPLOAD_SIZE`    | Maximum upload size              | `50m    |
+| `MEDIA_MAX_IMAGE_PIXELS`   | Max image pixels                 | `32M`   |
+| `MEDIA_MAX_SPIDER_SIZE`    | Maximum Spider Size              | `10m`   |
+| `MEDIA_RETENTION_LOCAL`    | Retain Local media for how long  | `90d`   |
+| `MEDIA_RETENTION_REMOTE`   | Retain remote media for how long | `14d`   |
 ### Networking
 
 | Port   | Protocol | Description        |

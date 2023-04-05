@@ -1,3 +1,12 @@
+## 0.7.0 2023-04-05 <dave at tiredofit dot ca>
+
+   ### Added
+      - Add ENABLE_MEDIA_REPO environment variable
+      - Add MEDIA_DYNAMIC_THUMBNAILS environment variable
+      - Impose limits for Maximum upload size, maximum image pixels and maximum spider size
+      - Add local and remote media retention capabilities
+
+
 ## 0.6.8 2023-03-30 <dave at tiredofit dot ca>
 
    ### Added
