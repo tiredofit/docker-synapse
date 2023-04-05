@@ -296,9 +296,9 @@ media_retention:
   local_media_lifetime: ${MEDIA_RETENTION_LOCAL}
   remote_media_lifetime: ${MEDIA_RETENTION_REMOTE}
 uploads_path: ${UPLOAD_PATH}
-max_upload_size: "${MEDIA_MAX_UPLOAD_SIZE}"
-max_image_pixels:  "${MEDIA_MAX_IMAGE_PIXELS}"
-max_spider_size: "${MEDIA_MAX_SPIDER_SIZE}"
+max_upload_size: ${MEDIA_MAX_UPLOAD_SIZE}
+max_image_pixels: ${MEDIA_MAX_IMAGE_PIXELS}
+max_spider_size: ${MEDIA_MAX_SPIDER_SIZE}
 dynamic_thumbnails: ${MEDIA_DYNAMIC_THUMBNAILS,,}
 thumbnail_sizes:
   - width: 32
@@ -562,9 +562,9 @@ EOF
         if var_true "${ENABLE_MEDIA_REPO}" ; then
             yq -i   '
                         .dynamic_thumbnails = env(MEDIA_DYNAMIC_THUMBNAILS) |
-                        .max_upload_size = env(MEDIA_MAX_UPLOAD_SIZE) |
-                        .max_image_size = env(MEDIA_MAX_IMAGE_PIXELS) |
-                        .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
+                        .max_upload_size = strenv(MEDIA_MAX_UPLOAD_SIZE) |
+                        .max_image_size = strenv(MEDIA_MAX_IMAGE_PIXELS) |
+                        .max_spider_size = strenv(MEDIA_MAX_SPIDER_SIZE) |
                         .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
                         .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"

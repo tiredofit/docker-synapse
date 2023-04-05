@@ -1,3 +1,9 @@
+## 0.7.2 2023-04-05 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Fix some yq oddities
+
+
 ## 0.7.1 2023-04-05 <dave at tiredofit dot ca>
 
    ### Changed
