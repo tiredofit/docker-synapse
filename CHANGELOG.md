@@ -1,3 +1,9 @@
+## 0.7.3 2023-04-05 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Continued yq fun against max_image_size
+
+
 ## 0.7.2 2023-04-05 <dave at tiredofit dot ca>
 
    ### Changed
