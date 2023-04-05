@@ -1,3 +1,9 @@
+## 0.7.1 2023-04-05 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Fix for MAX_IMAGE_PIXELS variable
+
+
 ## 0.7.0 2023-04-05 <dave at tiredofit dot ca>
 
    ### Added

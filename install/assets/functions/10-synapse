@@ -563,7 +563,7 @@ EOF
             yq -i   '
                         .dynamic_thumbnails = env(MEDIA_DYNAMIC_THUMBNAILS) |
                         .max_upload_size = env(MEDIA_MAX_UPLOAD_SIZE) |
-                        .max_image_size = env(MEDIA_MAX_IMAGE_SIZE) |
+                        .max_image_size = env(MEDIA_MAX_IMAGE_PIXELS) |
                         .max_spider_size = env(MEDIA_MAX_SPIDER_SIZE) |
                         .media_retention.local_media_lifetime = env(MEDIA_RETENTION_LOCAL) |
                         .media_retention.remote_media_lifetime = env(MEDIA_RETENTION_REMOTE)
