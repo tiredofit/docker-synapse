@@ -179,7 +179,7 @@ Be sure to view the following repositories to understand all the customizable op
 | -------------------------- | -------------------------------- | ------- |
 | `ENABLE_MEDIA_REPO`        | Enable inbuilt Media Repository  | `TRUE`  |
 | `MEDIA_DYNAMIC_THUMBNAILS` | Enable Dynamic Thumbnails        | `TRUE`  |
-| `MEDIA_MAX_UPLOAD_SIZE`    | Maximum upload size              | `50m    |
+| `MEDIA_MAX_UPLOAD_SIZE`    | Maximum upload size              | `50M`   |
 | `MEDIA_MAX_IMAGE_PIXELS`   | Max image pixels                 | `32M`   |
 | `MEDIA_MAX_SPIDER_SIZE`    | Maximum Spider Size              | `10m`   |
 | `MEDIA_RETENTION_LOCAL`    | Retain Local media for how long  | `90d`   |
