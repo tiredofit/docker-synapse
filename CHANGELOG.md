@@ -1,3 +1,9 @@
+## 0.8.24 2023-12-08 <dave at tiredofit dot ca>
+
+   ### Added
+      - Change base image to tiredofit/alpine:3.19
+
+
 ## 0.8.23 2023-11-28 <dave at tiredofit dot ca>
 
    ### Added
