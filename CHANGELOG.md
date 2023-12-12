@@ -1,3 +1,10 @@
+## 0.8.26 2023-12-12 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Break system packages with PIP
+      - Switch to Postgresql 16 clietn
+
+
 ## 0.8.25 2023-12-12 <dave at tiredofit dot ca>
 
    ### Added

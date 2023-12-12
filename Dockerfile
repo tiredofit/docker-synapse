@@ -52,7 +52,7 @@ RUN source assets/functions/00-container && \
                     icu \
                     inotify-tools \
                     libpq \
-                    postgresql15-client \
+                    postgresql16-client \
                     python3 \
                     py3-asn1 \
                     py3-asn1-modules \
@@ -100,10 +100,10 @@ RUN source assets/functions/00-container && \
                     sqlite \
                     && \
     \
-    pip install --upgrade --force "pyicu" && \
+    pip install --upgrade --force --break-system-packages "pyicu" && \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
     gpep517 build-wheel \
-                 		--wheel-dir dist \
+             		--wheel-dir dist \
                         --output-fd 1 \
                         && \
     pip install --upgrade dist/*.whl && \
