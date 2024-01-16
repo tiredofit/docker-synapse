@@ -106,7 +106,7 @@ RUN source assets/functions/00-container && \
              		--wheel-dir dist \
                         --output-fd 1 \
                         && \
-    pip install --upgrade dist/*.whl && \
+    pip install --break-system-packages --upgrade dist/*.whl && \
     mkdir -p \
             /assets/synapse \
             /var/run/synapse \
@@ -120,20 +120,20 @@ RUN source assets/functions/00-container && \
     \
     clone_git_repo "${PROVIDER_LDAP_REPO_URL}" "${PROVIDER_LDAP_VERSION}" && \
     gpep517 build-wheel \
-                 		--wheel-dir dist \
+               		--wheel-dir dist \
                         --output-fd 1 \
                         && \
-    pip install --upgrade dist/*.whl && \
+    pip install --break-system-packages --upgrade dist/*.whl && \
     \
     clone_git_repo "${PROVIDER_REST_REPO_URL}" "${PROVIDER_REST_VERSION}" && \
     cp rest_auth_provider.py /usr/lib/python*/site-packages && \
     \
     clone_git_repo "${PROVIDER_S3_REPO_URL}" "${PROVIDER_S3_VERSION}" && \
     gpep517 build-wheel \
-                 		--wheel-dir dist \
+               		--wheel-dir dist \
                         --output-fd 1 \
                         && \
-    pip install --upgrade dist/*.whl && \
+    pip install --break-system-packages --upgrade dist/*.whl && \
     \
     clone_git_repo "${PROVIDER_SHARED_SECRET_REPO_URL}" "${PROVIDER_SHARED_SECRET_VERSION}" && \
     cp -R shared_secret_authenticator.py /usr/lib/python*/ && \
