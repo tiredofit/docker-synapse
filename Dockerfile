@@ -10,12 +10,12 @@ ARG PROVIDER_REST_VERSION
 ARG PROVIDER_S3_VERSION
 ARG PROVIDER_SHARED_SECRET_VERSION
 
-ENV SYNAPSE_VERSION=${SYNAPSE_VERSION:-"v1.98.0"} \
+ENV SYNAPSE_VERSION=${SYNAPSE_VERSION:-"v1.99.0"} \
     PROVIDER_LDAP_VERSION=${PROVIDER_LDAP_VERSION:-"v0.3.0"} \
     PROVIDER_REST_VERSION=${PROVIDER_REST_VERSION:-"v0.1.4"} \
     PROVIDER_S3_VERSION=${PROVIDER_S3_VERSION:-"v1.3.0"} \
     PROVIDER_SHARED_SECRET_VERSION=${PROVIDER_SHARED_SECRET_VERSION:-"2.0.2"} \
-    SYNAPSE_REPO_URL=https://github.com/matrix-org/synapse \
+    SYNAPSE_REPO_URL=https://github.com/element-hq/synapse \
     PROVIDER_LDAP_REPO_URL=https://github.com/matrix-org/matrix-synapse-ldap3 \
     PROVIDER_REST_REPO_URL=https://github.com/ma1uta/matrix-synapse-rest-password-provider \
     PROVIDER_S3_REPO_URL=https://github.com/ma1uta/matrix-synapse-s3-storage-provider \
