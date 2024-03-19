@@ -1,3 +1,10 @@
+## 0.8.32 2024-03-19 <dave at tiredofit dot ca>
+
+   ### Added
+      - Synapse 1.103.0
+      - Synapse S3 Provider 1.4.0
+
+
 ## 0.8.31 2024-03-10 <dave at tiredofit dot ca>
 
    ### Added
