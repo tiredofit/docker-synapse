@@ -1,3 +1,9 @@
+## 0.8.49 2024-10-15 <dave at tiredofit dot ca>
+
+   ### Added
+      - Synapse 1.117.0
+
+
 ## 0.8.48 2024-10-01 <dave at tiredofit dot ca>
 
    ### Added
