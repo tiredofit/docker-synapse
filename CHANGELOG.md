@@ -1,3 +1,10 @@
+## 0.8.50 2024-10-29 <dave at tiredofit dot ca>
+
+   ### Added
+      - tireodfit/alpine:7.10.17
+      - Synapse 0.118.0
+
+
 ## 0.8.49 2024-10-15 <dave at tiredofit dot ca>
 
    ### Added
