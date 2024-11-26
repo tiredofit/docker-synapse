@@ -1,3 +1,10 @@
+## 0.8.52 2024-11-26 <dave at tiredofit dot ca>
+
+   ### Added
+      - Synapse 1.120.0
+      - tiredofit/alpine 7.10.19
+
+
 ## 0.8.51 2024-11-13 <dave at tiredofit dot ca>
 
    ### Added
