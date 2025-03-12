@@ -1,3 +1,10 @@
+## 0.8.60 2025-03-12 <dave at tiredofit dot ca>
+
+   ### Added
+      - Synapse 1.126.0
+      - Pin to tiredofit/alpine:7.10.29
+
+
 ## 0.8.59 2025-02-25 <dave at tiredofit dot ca>
 
    ### Added
