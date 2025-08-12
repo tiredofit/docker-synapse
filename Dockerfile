@@ -1,5 +1,5 @@
 ARG DISTRO=alpine
-ARG DISTRO_VARIANT=3.21-7.10.29
+ARG DISTRO_VARIANT=3.21-7.10.31
 
 FROM docker.io/tiredofit/${DISTRO}:${DISTRO_VARIANT}
 LABEL maintainer="Dave Conroy (github.com/tiredofit)"
@@ -10,7 +10,7 @@ ARG PROVIDER_REST_VERSION
 ARG PROVIDER_S3_VERSION
 ARG PROVIDER_SHARED_SECRET_VERSION
 
-ENV SYNAPSE_VERSION=${SYNAPSE_VERSION:-"v1.135.0"} \
+ENV SYNAPSE_VERSION=${SYNAPSE_VERSION:-"v1.135.2"} \
     PROVIDER_LDAP_VERSION=${PROVIDER_LDAP_VERSION:-"v0.3.0"} \
     PROVIDER_REST_VERSION=${PROVIDER_REST_VERSION:-"v0.1.4"} \
     PROVIDER_S3_VERSION=${PROVIDER_S3_VERSION:-"v1.4.0"} \
@@ -37,7 +37,7 @@ RUN source assets/functions/00-container && \
     package upgrade && \
     package install .synapse-build-deps \
                     g++ \
-                    icu-dev \
+#                    icu-dev \
                     py3-gpep517 \
                     py3-installer \
                     py3-poetry-core \
@@ -49,7 +49,7 @@ RUN source assets/functions/00-container && \
                     && \
     \
     package install .synapse-run-deps \
-                    icu \
+#                    icu \
                     inotify-tools \
                     libpq \
                     postgresql16-client \
@@ -100,7 +100,7 @@ RUN source assets/functions/00-container && \
                     sqlite \
                     && \
     \
-    pip install --upgrade --force --break-system-packages "pyicu" && \
+#    pip install --upgrade --force --break-system-packages "pyicu" && \
     clone_git_repo "${SYNAPSE_REPO_URL}" "${SYNAPSE_VERSION}" && \
     gpep517 build-wheel \
              		--wheel-dir dist \

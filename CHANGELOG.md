@@ -1,3 +1,12 @@
+## 0.8.71 2025-08-11 <dave at tiredofit dot ca>
+
+   ### Added
+      - Synapse 1.135.2
+
+   ### Reverted
+      - Remove ICU build run and python packages
+
+
 ## 0.8.70 2025-08-01 <dave at tiredofit dot ca>
 
    ### Added
