@@ -1,3 +1,9 @@
+## 0.8.73 2025-08-16 <dave at tiredofit dot ca>
+
+   ### Added
+      - Add arm64 build
+
+
 ## 0.8.72 2025-08-12 <dave at tiredofit dot ca>
 
    ### Added
